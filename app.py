@@ -1,10 +1,27 @@
-from flask import Flask,make_response,request,render_template
+from flask import Flask, render_template, request, jsonify, redirect, session
 from flask import jsonify,abort
 import json
 import sqlite3
+from flask_cors import CORS,cross_origin
 
 
 app = Flask(__name__)
+app.config.from_object(__name__)
+app.secret_key = 'F12Zr47j\3yX R~X@H!jmM]Lwf/,?KT'
+CORS(app)
+
+@app.route('/')
+def main():
+    return render_template('main.html')
+
+
+@app.route('/addname')
+def addname():
+    if request.args.get('yourname'):
+        session['name']=request.args.get('yourname')
+        return redirect(url_for('main'))
+    else:
+        return render_template('addname.html',session=session)
 
 
 @app.route("/api/v1/info")
@@ -149,7 +166,7 @@ def get_tweet(id):
 
 
 
- 
+
 
 def list_tweets():
     conn = sqlite3.connect('mydb.db')
