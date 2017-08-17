@@ -23,6 +23,10 @@ def addname():
     else:
         return render_template('addname.html',session=session)
 
+@app.route('/clear')
+def clearsession():
+    session.clear()
+    return redirect(url_for('main'))
 
 @app.route("/api/v1/info")
 def home_index():
