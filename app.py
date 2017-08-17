@@ -1,4 +1,4 @@
-from flask import Flask,make_response,request
+from flask import Flask,make_response,request,render_template
 from flask import jsonify,abort
 import json
 import sqlite3
@@ -24,6 +24,13 @@ def home_index():
     conn.close()
     return jsonify({'api_version':api_list}), 200
 
+@app.route('/adduser')
+def adduser():
+    return render_template('adduser.html')
+
+@app.route('/addtweets')
+def addtweetjs():
+    return render_template('addtweets.html')
 
 @app.errorhandler(404)
 def resource_not_found(error):
@@ -115,6 +122,61 @@ def add_user(new_user):
     return jsonify(a_dict)
 
 
+
+@app.route('/api/v2/tweets', methods=['GET'])
+def get_tweets():
+    return list_tweets()
+
+@app.route('/api/v2/tweets', methods=['POST'])
+def add_tweets():
+
+    user_tweet = {}
+    if not request.json or not 'username' in request.json or not 'body' in request.json:
+        abort(400)
+    user_tweet['username'] = request.json['username']
+    user_tweet['body'] = request.json['body']
+    user_tweet['created_at']=strftime("%Y-%m-%dT%H:%M:%SZ", gmtime())
+    print (user_tweet)
+    return  jsonify({'status': add_tweet(user_tweet)}), 201
+
+@app.route('/api/v2/tweets/<int:id>', methods=['GET'])
+def get_tweet(id):
+    return list_tweet(id)
+
+
+
+
+
+
+
+ 
+
+def list_tweets():
+    conn = sqlite3.connect('mydb.db')
+    print ("Opened database successfully");
+    api_list=[]
+    cursor=conn.cursor()
+    cursor.execute("SELECT username, body, tweet_time, id from tweets")
+    data = cursor.fetchall()
+    print (data)
+    print (len(data))
+    if len(data) == 0:
+        return api_list
+    else:
+        for row in data:
+            tweets = {}
+
+            tweets['tweetedby'] = row[0]
+            tweets['body'] = row[1]
+            tweets['timestamp'] = row[2]
+            tweets['id'] = row[3]
+
+            print (tweets)
+            api_list.append(tweets)
+
+    conn.close()
+    print (api_list)
+    return jsonify({'tweets_list': api_list})
 
 if __name__=="__main__":
     app.run(host='127.0.0.1',port=5000,debug=True)
